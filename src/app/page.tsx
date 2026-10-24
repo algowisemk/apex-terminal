@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import dynamic from "next/dynamic";
 import { Header } from "@/components/Header";
 import { WatchlistPanel } from "@/components/WatchlistPanel";
-import { ChartPanel } from "@/components/ChartPanel";
 import { OptionsMatrix } from "@/components/OptionsMatrix";
 import { PositionsPanel } from "@/components/PositionsPanel";
 import { OrderTicket } from "@/components/OrderTicket";
@@ -13,6 +13,19 @@ import { CommandPalette } from "@/components/CommandPalette";
 import { AuthModal } from "@/components/AuthModal";
 import { createClient } from "@/lib/supabase/client";
 import { TickerSummary, Candle, AccountSummary } from "@/lib/types";
+
+// Dynamically import ChartPanel with ssr: false to prevent Canvas / Webpack SSR conflicts on Vercel
+const ChartPanel = dynamic(
+  () => import("@/components/ChartPanel").then((mod) => mod.ChartPanel),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex h-full items-center justify-center bg-zinc-950 font-mono text-xs text-zinc-600">
+        INITIALIZING TRADINGVIEW ENGINE...
+      </div>
+    ),
+  }
+);
 
 export default function TerminalHome() {
   const [activeTab, setActiveTab] = useState<"markets" | "options" | "quant" | "ai" | "positions">("markets");
@@ -34,21 +47,24 @@ export default function TerminalHome() {
     delta: false,
   });
 
-  const supabase = createClient();
-
-  // Listen to Supabase auth state changes
+  // Safely initialize Supabase on client
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setCurrentUser(data.user || null);
-    });
+    try {
+      const supabase = createClient();
+      supabase.auth.getUser().then(({ data }) => {
+        setCurrentUser(data.user || null);
+      });
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((_, session) => {
-      setCurrentUser(session?.user || null);
-    });
+      const { data: authListener } = supabase.auth.onAuthStateChange((_, session) => {
+        setCurrentUser(session?.user || null);
+      });
 
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
+      return () => {
+        authListener.subscription.unsubscribe();
+      };
+    } catch (e) {
+      console.warn("Supabase init deferred:", e);
+    }
   }, []);
 
   // Fetch initial market overview data
