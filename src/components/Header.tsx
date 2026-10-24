@@ -1,11 +1,11 @@
 "use client";
 
 import React from "react";
-import { Terminal, Activity, ShieldCheck, Zap, Search, Cpu, Briefcase, User } from "lucide-react";
+import { Terminal, Activity, ShieldCheck, Zap, Search, Cpu, Briefcase, User, Landmark } from "lucide-react";
 
 interface HeaderProps {
-  activeTab: "markets" | "options" | "quant" | "ai" | "positions";
-  setActiveTab: (tab: "markets" | "options" | "quant" | "ai" | "positions") => void;
+  activeTab: "markets" | "options" | "quant" | "ai" | "positions" | "sec";
+  setActiveTab: (tab: "markets" | "options" | "quant" | "ai" | "positions" | "sec") => void;
   activeSymbol: string;
   onOpenCommand: () => void;
   onOpenAuth: () => void;
@@ -46,6 +46,7 @@ export function Header({
               { id: "markets", label: "MARKETS & CHART", icon: Activity },
               { id: "options", label: "DERIVATIVES & GREEKS", icon: Zap },
               { id: "positions", label: `POSITIONS (${positionsCount})`, icon: Briefcase },
+              { id: "sec", label: "SEC 10-K FILINGS", icon: Landmark },
               { id: "quant", label: "QUANT LAB", icon: Cpu },
               { id: "ai", label: "AI AGENT DESK", icon: ShieldCheck },
             ].map((tab) => {

@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { Header } from "@/components/Header";
 import { WatchlistPanel } from "@/components/WatchlistPanel";
 import { OptionsMatrix } from "@/components/OptionsMatrix";
 import { PositionsPanel } from "@/components/PositionsPanel";
+import { SecFilingsPanel } from "@/components/SecFilingsPanel";
 import { OrderTicket } from "@/components/OrderTicket";
 import { AgentDrawer } from "@/components/AgentDrawer";
 import { QuantLab } from "@/components/QuantLab";
@@ -28,7 +29,7 @@ const ChartPanel = dynamic(
 );
 
 export default function TerminalHome() {
-  const [activeTab, setActiveTab] = useState<"markets" | "options" | "quant" | "ai" | "positions">("markets");
+  const [activeTab, setActiveTab] = useState<"markets" | "options" | "quant" | "ai" | "positions" | "sec">("markets");
   const [activeSymbol, setActiveSymbol] = useState("BTCUSD");
   const [timeframe, setTimeframe] = useState("1H");
   const [watchlist, setWatchlist] = useState<TickerSummary[]>([]);
@@ -160,6 +161,12 @@ export default function TerminalHome() {
             </div>
           )}
 
+          {activeTab === "sec" && (
+            <div className="flex-1 overflow-hidden">
+              <SecFilingsPanel symbol={activeSymbol} />
+            </div>
+          )}
+
           {activeTab === "quant" && (
             <div className="flex-1 overflow-hidden">
               <QuantLab bars={bars} symbol={activeSymbol} />
@@ -179,7 +186,7 @@ export default function TerminalHome() {
         isOpen={isCommandOpen}
         onClose={() => setIsCommandOpen(false)}
         onSelectSymbol={(sym) => setActiveSymbol(sym)}
-        onSelectDesk={(desk) => setActiveTab(desk)}
+        onSelectDesk={(desk: any) => setActiveTab(desk)}
       />
 
       {/* Supabase Auth & Keys Modal */}
