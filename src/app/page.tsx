@@ -146,7 +146,7 @@ export default function TerminalHome() {
 
           {activeTab === "quant" && (
             <div className="flex-1 overflow-hidden">
-              <QuantLab />
+              <QuantLab bars={bars} symbol={activeSymbol} />
             </div>
           )}
 
