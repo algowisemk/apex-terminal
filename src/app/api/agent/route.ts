@@ -23,7 +23,7 @@ export async function POST(request: Request) {
       getAlpacaBars(symbol, "1Hour", 30),
       getAlpacaAccount(),
       isCrypto ? getDeribitIndexPrice(symbol.includes("ETH") ? "ETH" : "BTC") : Promise.resolve(0),
-      isCrypto ? getDeribitOptionChain(symbol.includes("ETH") ? "ETH" : "BTC") : Promise.resolve([]),
+      isCrypto ? getDeribitOptionChain(symbol.includes("ETH") ? "ETH" : "BTC") : Promise.resolve([] as any[]),
     ]);
 
     const latestBar = bars[bars.length - 1];
@@ -41,8 +41,8 @@ export async function POST(request: Request) {
           2450
         ).data;
 
-    const nearCalls = options.filter((o) => o.type === "CALL");
-    const nearPuts = options.filter((o) => o.type === "PUT");
+    const nearCalls = (options as any[]).filter((o: any) => o.type === "CALL");
+    const nearPuts = (options as any[]).filter((o: any) => o.type === "PUT");
     const avgCallIV = nearCalls.length > 0 ? nearCalls[0].iv : 45.2;
     const avgPutIV = nearPuts.length > 0 ? nearPuts[0].iv : 42.1;
     const skew = analyzeOptionsSkew(spotPrice, avgCallIV, avgPutIV).data;
