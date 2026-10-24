@@ -1,26 +1,31 @@
 "use client";
 
 import React, { useState } from "react";
-import { runResearchSwarm, ResearchMemo, AgentStep } from "@/lib/agents/orchestrator";
-import { Bot, Sparkles, Send, CheckCircle2, ChevronRight, Layers, FileSpreadsheet } from "lucide-react";
+import { ResearchMemo } from "@/lib/agents/orchestrator";
+import { Bot, Sparkles, Send, CheckCircle2, FileSpreadsheet, Zap } from "lucide-react";
 
 interface AgentDrawerProps {
   symbol: string;
 }
 
 export function AgentDrawer({ symbol }: AgentDrawerProps) {
-  const [prompt, setPrompt] = useState(`Analyze ${symbol} across fundamental valuation, derivatives skew, and risk sizing`);
+  const [prompt, setPrompt] = useState(`Analyze ${symbol} across fundamental valuation, options skew, and Kelly risk sizing`);
   const [analyzing, setAnalyzing] = useState(false);
   const [memo, setMemo] = useState<ResearchMemo | null>(null);
 
   const handleRunAgent = async () => {
     setAnalyzing(true);
     try {
-      const price = symbol.includes("BTC") ? 80700 : symbol.includes("ETH") ? 2650 : 218.18;
-      const res = await runResearchSwarm(symbol, price, 993940);
-      setMemo(res);
+      const res = await fetch("/api/agent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ symbol, prompt }),
+      });
+      if (!res.ok) throw new Error("Agent swarm generation failed");
+      const data = await res.json();
+      setMemo(data);
     } catch (err) {
-      console.error(err);
+      console.error("Agent run failed:", err);
     } finally {
       setAnalyzing(false);
     }
@@ -34,9 +39,15 @@ export function AgentDrawer({ symbol }: AgentDrawerProps) {
           <Bot className="h-4 w-4 text-amber-400" />
           <span className="font-bold text-zinc-200">AI AGENTIC RESEARCH SWARM</span>
         </div>
-        <span className="rounded bg-indigo-500/10 px-2 py-0.5 text-[10px] text-indigo-400 border border-indigo-500/20">
-          4 SPECIALIST AGENTS ACTIVE
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="rounded bg-amber-500/10 px-2 py-0.5 text-[10px] text-amber-400 border border-amber-500/20 flex items-center gap-1">
+            <Zap className="h-3 w-3" />
+            <span>GROQ LPU (QWEN-27B) ACTIVE</span>
+          </span>
+          <span className="rounded bg-indigo-500/10 px-2 py-0.5 text-[10px] text-indigo-400 border border-indigo-500/20">
+            4 AGENTS
+          </span>
+        </div>
       </div>
 
       {/* Prompt Bar */}
@@ -60,7 +71,7 @@ export function AgentDrawer({ symbol }: AgentDrawerProps) {
             {analyzing ? (
               <>
                 <span className="animate-spin text-zinc-950">●</span>
-                <span>SWARM RUNNING...</span>
+                <span>SWARM RUNNING (GROQ LPU)...</span>
               </>
             ) : (
               <>
@@ -72,7 +83,7 @@ export function AgentDrawer({ symbol }: AgentDrawerProps) {
         </div>
       </div>
 
-      {/* Main Content Area: Agent Steps Pipeline + Synthesized Memo */}
+      {/* Main Content Area */}
       <div className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-3 overflow-hidden">
         {/* Left: Swarm Execution Pipeline (Step by Step) */}
         <div className="md:col-span-4 rounded border border-zinc-850 bg-zinc-900/30 p-3 overflow-y-auto space-y-2">
@@ -82,7 +93,7 @@ export function AgentDrawer({ symbol }: AgentDrawerProps) {
 
           {!memo && !analyzing && (
             <div className="text-zinc-600 py-6 text-center text-[11px]">
-              Hit "Dispatch Agent Swarm" to initiate Planner, Fundamental, Derivatives, and Risk agents.
+              Hit "Dispatch Agent Swarm" to initiate Planner, Fundamental, Derivatives, and Risk agents on Groq LPU.
             </div>
           )}
 
@@ -105,7 +116,7 @@ export function AgentDrawer({ symbol }: AgentDrawerProps) {
           ))}
         </div>
 
-        {/* Right: Sourced Investment Memo */}
+        {/* Right: Real Sourced Investment Memo */}
         <div className="md:col-span-8 rounded border border-zinc-850 bg-zinc-900/40 p-4 overflow-y-auto">
           {memo ? (
             <div className="space-y-3">
@@ -119,9 +130,11 @@ export function AgentDrawer({ symbol }: AgentDrawerProps) {
                 </span>
               </div>
 
-              <pre className="whitespace-pre-wrap font-mono text-[11px] leading-relaxed text-zinc-200 bg-transparent p-0 border-0">
-                {memo.markdownMemo}
-              </pre>
+              <div className="prose prose-invert prose-xs max-w-none text-zinc-200">
+                <pre className="whitespace-pre-wrap font-mono text-[11px] leading-relaxed text-zinc-200 bg-transparent p-0 border-0">
+                  {memo.markdownMemo}
+                </pre>
+              </div>
             </div>
           ) : (
             <div className="flex h-full flex-col items-center justify-center text-center text-zinc-500 space-y-2">
